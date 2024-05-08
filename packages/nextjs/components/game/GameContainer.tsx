@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { GameState } from "../../types/game";
 import { GameDisk, GameEngine } from "../../utils/gameEngine";
-import GameInput from "./GameInput";
 import { GameMap } from "./GameMap";
 import GameOutput from "./GameOutput";
 import { GameStatus } from "./GameStatus";
@@ -45,12 +44,10 @@ const GameContainer: React.FC = () => {
   return (
     // Render your game components and pass the gameState and handleCommand as props
     // Example:
-    <div className="card flex flex-row space-x-6 border-2">
+    <div className="card flex flex-row space-x-6 border-2 max-h-fit container mx-auto">
       <GameMap currentRoom={gameState.currentRoom} rooms={gameDiskData.rooms} />
-      <div className="flex flex-col">
-        <GameOutput output={gameState.output} />
-
-        <GameInput onCommand={handleCommand} />
+      <div className="container flex flex-col justify-center items-center">
+        <GameOutput output={gameState.output} handleCommand={handleCommand} />
       </div>
       <GameStatus inventory={gameState.inventory} />
     </div>

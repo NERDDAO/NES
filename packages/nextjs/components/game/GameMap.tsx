@@ -1,7 +1,6 @@
 // components/Game/GameMap.tsx
 import React, { useState } from "react";
 import { Room } from "../../types/game";
-import { generateASCIIArt } from "../../utils/asciiArt";
 import { MapNavigator } from "./MapNavigator";
 
 interface GameMapProps {
@@ -29,12 +28,10 @@ export const GameMap: React.FC<GameMapProps> = ({ currentRoom, rooms }) => {
     if (!room) {
       return <p>Room not found.</p>;
     }
-    const itemArt = generateASCIIArt("item1");
     return (
       <>
         <h3>Map:</h3>
         <MapNavigator room={room} />
-        <pre>{itemArt}</pre>
       </>
     );
   };
