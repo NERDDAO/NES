@@ -1,10 +1,12 @@
 // components/Game/GameContainer.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GameState } from "../../types/game";
 import { GameDisk, GameEngine } from "../../utils/gameEngine";
 import { GameMap } from "./GameMap";
 import GameOutput from "./GameOutput";
 import { GameStatus } from "./GameStatus";
+
+// Create a database connection
 
 // Define your game disk data
 const gameDiskData: GameDisk = {
@@ -44,9 +46,9 @@ const GameContainer: React.FC = () => {
   return (
     // Render your game components and pass the gameState and handleCommand as props
     // Example:
-    <div className="card flex flex-row space-x-6 border-2 max-h-fit container mx-auto">
+    <div className="card flex flex-row space-x-6 border-2 h-full max-h-192 container mx-auto p-4">
       <GameMap currentRoom={gameState.currentRoom} rooms={gameDiskData.rooms} />
-      <div className="container flex flex-col justify-center items-center">
+      <div className="relative container flex flex-col justify-center items-center">
         <GameOutput output={gameState.output} handleCommand={handleCommand} />
       </div>
       <GameStatus inventory={gameState.inventory} />

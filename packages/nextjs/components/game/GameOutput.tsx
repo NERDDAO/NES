@@ -8,9 +8,9 @@ interface GameOutputProps {
 
 const GameOutput: React.FC<GameOutputProps> = ({ output, handleCommand }) => {
   return (
-    <div className="card bg-black-500 border-2 top-0  h-full ">
+    <div className="h-full card bg-black-500 border-2 top-0   ">
       <span className="card-title p-2">Game Output</span>
-      <div className="card-body max-h-full overflow-y-auto">
+      <div className="card-body h-fill overflow-y-auto">
         Game
         {output.map((line, index) => (
           <p key={index}>{line}</p>
