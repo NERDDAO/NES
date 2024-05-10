@@ -57,18 +57,13 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
     const initializeMUD = async () => {
       const result = await setup();
       setMudSetup(result);
+      setMounted(true);
     };
-
-    initializeMUD();
-  }, []);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
+    if (!mounted) {
+      initializeMUD();
+    }
+    if (!mudSetup || mounted) return;
     const mountDevTools = async () => {
-      if (!mudSetup) return;
       const { mount } = await import("@latticexyz/dev-tools");
       mount({
         config: mudConfig,
@@ -82,9 +77,9 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
         recsWorld: mudSetup.network.world,
       });
     };
-
     mountDevTools();
-  }, [mudSetup]);
+    console.log("I've been used");
+  }, [mudSetup, mounted]);
 
   if (!mudSetup) {
     return <div>Loading...</div>; // You can replace this with a loading state or spinner

@@ -1,22 +1,34 @@
 "use client";
 
-import Link from "next/link";
-import type { NextPage } from "next";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import GameContainer from "~~/components/game/GameContainer";
-import { Address } from "~~/components/scaffold-eth";
+import { GameBoard } from "../components/mud/GameBoard";
+import { useMUD } from "../components/mud/MUDContext";
+import { useComponentValue } from "@latticexyz/react";
+import { SyncStep } from "@latticexyz/store-sync";
+import { singletonEntity } from "@latticexyz/store-sync/recs";
 
-const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
+export const Home = () => {
+  const {
+    components: { SyncProgress },
+  } = useMUD();
+
+  const loadingState = useComponentValue(SyncProgress, singletonEntity, {
+    step: SyncStep.INITIALIZE,
+    message: "Connecting",
+    percentage: 0,
+    latestBlockNumber: 0n,
+    lastBlockNumberProcessed: 0n,
+  });
 
   return (
-    <>
-      <div className="flex items-center flex-col  h-[50%] w-full max-h-screen pt-10 container mx-auto">
-        <GameContainer />
-      </div>
-    </>
+    <div className="w-screen h-screen flex items-center justify-center">
+      {loadingState.step !== SyncStep.LIVE ? (
+        <div>
+          {loadingState.message} ({loadingState.percentage.toFixed(2)}%)
+        </div>
+      ) : (
+        <GameBoard />
+      )}
+    </div>
   );
 };
-
 export default Home;
