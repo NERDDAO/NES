@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MUDProvider } from "./mud/MUDContext";
 import { setup } from "./mud/mud/setup";
 import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
@@ -47,43 +47,46 @@ export const queryClient = new QueryClient({
   },
 });
 
+const renderMUDProvider = (mudSetup: any, children: React.ReactNode) => {
+  return <MUDProvider value={mudSetup}>{children}</MUDProvider>;
+};
+
 export const ScaffoldEthAppWithProviders = ({ children }: { children: React.ReactNode }) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
   const [mounted, setMounted] = useState(false);
-  const [mudSetup, setMudSetup] = useState(null);
+  const [mudProvider, setMudProvider] = useState<React.ReactNode>(null);
+  const hasInitializedRef = useRef(false);
+
+  const mountDevTools = async (mudSetup: any) => {
+    const { mount } = await import("@latticexyz/dev-tools");
+    mount({
+      config: mudConfig,
+      publicClient: mudSetup.network.publicClient,
+      walletClient: mudSetup.network.walletClient,
+      latestBlock$: mudSetup.network.latestBlock$,
+      storedBlockLogs$: mudSetup.network.storedBlockLogs$,
+      worldAddress: mudSetup.network.worldContract.address,
+      worldAbi: mudSetup.network.worldContract.abi,
+      write$: mudSetup.network.write$,
+      recsWorld: mudSetup.network.world,
+    });
+  };
 
   useEffect(() => {
     const initializeMUD = async () => {
-      const result = await setup();
-      setMudSetup(result);
-      setMounted(true);
-    };
-    if (!mounted) {
-      initializeMUD();
-    }
-    if (!mudSetup || mounted) return;
-    const mountDevTools = async () => {
-      const { mount } = await import("@latticexyz/dev-tools");
-      mount({
-        config: mudConfig,
-        publicClient: mudSetup.network.publicClient,
-        walletClient: mudSetup.network.walletClient,
-        latestBlock$: mudSetup.network.latestBlock$,
-        storedBlockLogs$: mudSetup.network.storedBlockLogs$,
-        worldAddress: mudSetup.network.worldContract.address,
-        worldAbi: mudSetup.network.worldContract.abi,
-        write$: mudSetup.network.write$,
-        recsWorld: mudSetup.network.world,
-      });
-    };
-    mountDevTools();
-    console.log("I've been used");
-  }, [mudSetup, mounted]);
+      if (hasInitializedRef.current) return;
+      hasInitializedRef.current = true;
 
-  if (!mudSetup) {
-    return <div>Loading...</div>; // You can replace this with a loading state or spinner
-  }
+      const result = await setup();
+      setMounted(true);
+      setMudProvider(renderMUDProvider(result, <ScaffoldEthApp>{children}</ScaffoldEthApp>));
+      mountDevTools(result);
+    };
+
+    console.log("initializeMUD", initializeMUD);
+    initializeMUD();
+  }, [children]);
 
   return (
     <WagmiProvider config={wagmiConfig}>
@@ -93,9 +96,7 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
           avatar={BlockieAvatar}
           theme={mounted ? (isDarkMode ? darkTheme() : lightTheme()) : lightTheme()}
         >
-          <MUDProvider value={mudSetup}>
-            <ScaffoldEthApp>{children}</ScaffoldEthApp>
-          </MUDProvider>
+          {mudProvider || <div>Loading...</div>}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
