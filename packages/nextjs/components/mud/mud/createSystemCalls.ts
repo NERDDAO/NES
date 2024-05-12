@@ -67,8 +67,14 @@ export function createSystemCalls(
     try {
       const tx = await worldContract.write.move([direction]);
       await waitForTransaction(tx);
+    } catch (error) {
+      // Handle the error if the transaction fails
+      console.error("Move transaction failed:", error);
     } finally {
-      Position.removeOverride(positionId);
+      // Delay the override removal by a short duration (e.g., 1000ms)
+      setTimeout(() => {
+        Position.removeOverride(positionId);
+      }, 1000);
     }
   };
 
