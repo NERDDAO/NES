@@ -21,43 +21,6 @@ export const EncounterScreen = ({ monsterName, monsterEmoji }: Props) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleThrowBall = async () => {
-    // Add a delay before sending the transaction
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Adjust the delay as needed
-
-    toast.promise(
-      throwBall(),
-      {
-        loading: "Throwing emojiball…",
-        success: result => {
-          if (result === MonsterCatchResult.Caught) {
-            return `You caught the ${monsterName}!`;
-          } else if (result === MonsterCatchResult.Fled) {
-            return `Oh no, the ${monsterName} fled!`;
-          } else if (result === MonsterCatchResult.Missed) {
-            return "You missed!";
-          } else {
-            throw new Error(`Unexpected catch attempt result: ${MonsterCatchResult[result]}`);
-          }
-        },
-        error: error => `Error: ${error.message}`,
-      },
-      {
-        success: {
-          duration: 5000,
-          icon: "🎉",
-        },
-        error: {
-          duration: 5000,
-          icon: "❌",
-        },
-        loading: {
-          duration: Infinity,
-        },
-      },
-    );
-  };
-
   return (
     <div
       className={twMerge(
@@ -69,8 +32,45 @@ export const EncounterScreen = ({ monsterName, monsterEmoji }: Props) => {
       <div>A wild {monsterName} appears!</div>
 
       <div className="flex gap-2">
-        <button onClick={handleThrowBall}>☄️ Throw</button>
-
+        <button
+          type="button"
+          className="bg-stone-600 hover:ring rounded-lg px-4 py-2"
+          onClick={() => {
+            toast.promise(
+              throwBall(),
+              {
+                loading: "Throwing emojiball…",
+                success: result => {
+                  if (result === MonsterCatchResult.Caught) {
+                    return `You caught the ${monsterName}!`;
+                  } else if (result === MonsterCatchResult.Fled) {
+                    return `Oh no, the ${monsterName} fled!`;
+                  } else if (result === MonsterCatchResult.Missed) {
+                    return "You missed!";
+                  } else {
+                    throw new Error(`Unexpected catch attempt result: ${MonsterCatchResult[result]}`);
+                  }
+                },
+                error: error => `Error: ${error.message}`,
+              },
+              {
+                success: {
+                  duration: 5000,
+                  icon: "🎉",
+                },
+                error: {
+                  duration: 5000,
+                  icon: "❌",
+                },
+                loading: {
+                  duration: Infinity,
+                },
+              },
+            );
+          }}
+        >
+          ☄️ Throw
+        </button>
         <button
           type="button"
           className="bg-stone-800 hover:ring rounded-lg px-4 py-2"

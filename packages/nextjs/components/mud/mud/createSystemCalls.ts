@@ -108,9 +108,14 @@ export function createSystemCalls(
     try {
       const tx = await worldContract.write.spawn([x, y]);
       await waitForTransaction(tx);
+    } catch (error) {
+      // Handle the error if the transaction fails
+      console.error("Spawn transaction failed:", error);
     } finally {
-      Position.removeOverride(positionId);
-      Player.removeOverride(playerId);
+      setTimeout(() => {
+        Position.removeOverride(positionId);
+        Player.removeOverride(playerId);
+      }, 1000);
     }
   };
 
@@ -124,9 +129,13 @@ export function createSystemCalls(
     if (!encounter) {
       throw new Error("no encounter");
     }
-
-    const tx = await worldContract.write.throwBall();
-    await waitForTransaction(tx);
+    try {
+      const tx = await worldContract.write.throwBall();
+      await waitForTransaction(tx);
+    } catch (error) {
+      // Handle the error if the transaction fails
+      console.error("Spawn transaction failed:", error);
+    }
 
     const catchAttempt = getComponentValue(MonsterCatchAttempt, player);
     if (!catchAttempt) {
