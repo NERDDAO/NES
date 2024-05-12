@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import mudConfig from "contracts/mud.config";
 import { useTheme } from "next-themes";
 import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
 import { WagmiProvider } from "wagmi";
 import { Footer } from "~~/components/Footer";
 import { Header } from "~~/components/Header";
@@ -32,8 +33,11 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
       <div className="flex flex-col max-h-screen">
         <Header />
         <main className="relative flex flex-col flex-1">{children}</main>
+
         <Footer />
       </div>
+
+      <ToastContainer position="bottom-right" draggable={false} theme="dark" />
       <Toaster />
     </>
   );
@@ -47,15 +51,11 @@ export const queryClient = new QueryClient({
   },
 });
 
-const renderMUDProvider = (mudSetup: any, children: React.ReactNode) => {
-  return <MUDProvider value={mudSetup}>{children}</MUDProvider>;
-};
-
 export const ScaffoldEthAppWithProviders = ({ children }: { children: React.ReactNode }) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
   const [mounted, setMounted] = useState(false);
-  const [mudProvider, setMudProvider] = useState<React.ReactNode>(null);
+  const [result, setResult] = useState<any>(null);
   const hasInitializedRef = useRef(false);
 
   const mountDevTools = async (mudSetup: any) => {
@@ -80,13 +80,13 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
 
       const result = await setup();
       setMounted(true);
-      setMudProvider(renderMUDProvider(result, <ScaffoldEthApp>{children}</ScaffoldEthApp>));
+      setResult(result);
       mountDevTools(result);
+      console.log("initializeMUD", initializeMUD);
     };
 
-    console.log("initializeMUD", initializeMUD);
     initializeMUD();
-  }, [children]);
+  }, []);
 
   return (
     <WagmiProvider config={wagmiConfig}>
@@ -96,7 +96,13 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
           avatar={BlockieAvatar}
           theme={mounted ? (isDarkMode ? darkTheme() : lightTheme()) : lightTheme()}
         >
-          {mudProvider || <div>Loading...</div>}
+          {result ? (
+            <MUDProvider value={result}>
+              <ScaffoldEthApp>{children}</ScaffoldEthApp>
+            </MUDProvider>
+          ) : (
+            <div>Loading...</div>
+          )}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

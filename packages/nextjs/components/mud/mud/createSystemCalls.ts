@@ -1,7 +1,8 @@
 import { Direction } from "../direction";
+import { MonsterCatchResult } from "../monsterCatchResult";
 import { ClientComponents } from "./createClientComponents";
 import { SetupNetworkResult } from "./setupNetwork";
-import { getComponentValue } from "@latticexyz/recs";
+import { Has, HasValue, getComponentValue, runQuery } from "@latticexyz/recs";
 import { singletonEntity } from "@latticexyz/store-sync/recs";
 import { uuid } from "@latticexyz/utils";
 
@@ -9,8 +10,20 @@ export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
 export function createSystemCalls(
   { playerEntity, worldContract, waitForTransaction }: SetupNetworkResult,
-  { Player, Position }: ClientComponents,
+  { Encounter, MapConfig, MonsterCatchAttempt, Obstruction, Player, Position }: ClientComponents,
 ) {
+  const wrapPosition = (x: number, y: number) => {
+    const mapConfig = getComponentValue(MapConfig, singletonEntity);
+    if (!mapConfig) {
+      throw new Error("mapConfig no yet loaded or initialized");
+    }
+    return [(x + mapConfig.width) % mapConfig.width, (y + mapConfig.height) % mapConfig.height];
+  };
+
+  const isObstructed = (x: number, y: number) => {
+    return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
+  };
+
   const move = async (direction: Direction) => {
     if (!playerEntity) {
       throw new Error("no player");
@@ -22,15 +35,27 @@ export function createSystemCalls(
       return;
     }
 
-    let { x, y } = position;
+    const inEncounter = !!getComponentValue(Encounter, playerEntity);
+    if (inEncounter) {
+      console.warn("cannot move while in encounter");
+      return;
+    }
+
+    let { x: inputX, y: inputY } = position;
     if (direction === Direction.North) {
-      y -= 1;
+      inputY -= 1;
     } else if (direction === Direction.East) {
-      x += 1;
+      inputX += 1;
     } else if (direction === Direction.South) {
-      y += 1;
+      inputY += 1;
     } else if (direction === Direction.West) {
-      x -= 1;
+      inputX -= 1;
+    }
+
+    const [x, y] = wrapPosition(inputX, inputY);
+    if (isObstructed(x, y)) {
+      console.warn("cannot move to obstructed space");
+      return;
     }
 
     const positionId = uuid();
@@ -47,7 +72,7 @@ export function createSystemCalls(
     }
   };
 
-  const spawn = async (x: number, y: number) => {
+  const spawn = async (inputX: number, inputY: number) => {
     if (!playerEntity) {
       throw new Error("no player");
     }
@@ -55,6 +80,12 @@ export function createSystemCalls(
     const canSpawn = getComponentValue(Player, playerEntity)?.value !== true;
     if (!canSpawn) {
       throw new Error("already spawned");
+    }
+
+    const [x, y] = wrapPosition(inputX, inputY);
+    if (isObstructed(x, y)) {
+      console.warn("cannot spawn on obstructed space");
+      return;
     }
 
     const positionId = uuid();
@@ -78,13 +109,30 @@ export function createSystemCalls(
   };
 
   const throwBall = async () => {
-    // TODO
-    return null as any;
+    const player = playerEntity;
+    if (!player) {
+      throw new Error("no player");
+    }
+
+    const encounter = getComponentValue(Encounter, player);
+    if (!encounter) {
+      throw new Error("no encounter");
+    }
+
+    const tx = await worldContract.write.throwBall();
+    await waitForTransaction(tx);
+
+    const catchAttempt = getComponentValue(MonsterCatchAttempt, player);
+    if (!catchAttempt) {
+      throw new Error("no catch attempt found");
+    }
+
+    return catchAttempt.result as MonsterCatchResult;
   };
 
   const fleeEncounter = async () => {
-    // TODO
-    return null as any;
+    const tx = await worldContract.write.flee();
+    await waitForTransaction(tx);
   };
 
   return {

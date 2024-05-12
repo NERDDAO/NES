@@ -1,6 +1,6 @@
 "use client";
 
-import { GameBoard } from "../components/mud/GameBoard";
+import GameBoard from "../components/mud/GameBoard";
 import { useMUD } from "../components/mud/MUDContext";
 import { useComponentValue } from "@latticexyz/react";
 import { SyncStep } from "@latticexyz/store-sync";
@@ -19,6 +19,10 @@ export const Home = () => {
     lastBlockNumberProcessed: 0n,
   });
 
+  const RenderGameBoard = () => {
+    return GameBoard();
+  };
+
   return (
     <div className="w-screen h-screen flex items-center justify-center">
       {loadingState.step !== SyncStep.LIVE ? (
@@ -26,7 +30,7 @@ export const Home = () => {
           {loadingState.message} ({loadingState.percentage.toFixed(2)}%)
         </div>
       ) : (
-        <GameBoard />
+        <RenderGameBoard />
       )}
     </div>
   );
