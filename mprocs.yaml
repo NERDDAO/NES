@@ -1,7 +1,7 @@
 procs:
   contracts:
     cwd: packages/contracts
-    shell: pnpm run dev
+    shell: yarn run dev
   client:
     cwd: packages/nextjs
     shell: yarn run dev
