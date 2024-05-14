@@ -115,7 +115,7 @@ export function createSystemCalls(
       setTimeout(() => {
         Position.removeOverride(positionId);
         Player.removeOverride(playerId);
-      }, 1000);
+      }, 500);
     }
   };
 
