@@ -51,6 +51,7 @@
     "node": ">=18.17.0"
   },
   "dependencies": {
-    "@tableland/sdk": "^7.0.0"
+    "@tableland/sdk": "^7.0.0",
+    "react-toastify": "^10.0.5"
   }
 }

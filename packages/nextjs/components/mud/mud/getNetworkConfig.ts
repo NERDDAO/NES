@@ -12,6 +12,14 @@
  * See https://mud.dev/tutorials/minimal/deploy#wallet-managed-address
  * for how to use the user's own address instead.
  */
+import { getBurnerPrivateKey } from "@latticexyz/common";
+
+/*
+ * Import the addresses of the World, possibly on multiple chains,
+ * from packages/contracts/worlds.json. When the contracts package
+ * deploys a new `World`, it updates this file.
+ */
+import worlds from "contracts/worlds.json";
 
 /*
  * The supported chains.
@@ -27,14 +35,6 @@
  * for instructions on how to add networks.
  */
 import { supportedChains } from "./supportedChains";
-import { getBurnerPrivateKey } from "@latticexyz/common";
-
-/*
- * Import the addresses of the World, possibly on multiple chains,
- * from packages/contracts/worlds.json. When the contracts package
- * deploys a new `World`, it updates this file.
- */
-import worlds from "contracts/worlds.json";
 
 export async function getNetworkConfig() {
   const params = new URLSearchParams(window.location.search);
@@ -47,12 +47,12 @@ export async function getNetworkConfig() {
    *    vite dev server was started or client was built
    * 4. The default, 31337 (anvil)
    */
-  const chainId = Number(params.get("chainId") || params.get("chainid") || 31337);
+  const chainId = Number(params.get("chainId") || params.get("chainid") ||  31337);
 
   /*
    * Find the chain (unless it isn't in the list of supported chains).
    */
-  const chainIndex = supportedChains.findIndex(c => c.id === chainId);
+  const chainIndex = supportedChains.findIndex((c) => c.id === chainId);
   const chain = supportedChains[chainIndex];
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`);
