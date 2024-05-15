@@ -1,36 +1,35 @@
+import React, { useEffect } from "react";
+import PlayerInput from "../PlayerInput";
+import PlayerList from "../PlayerList";
 import { useMUD } from "./MUDContext";
-import { useComponentValue, useEntityQuery } from "@latticexyz/react";
-import { Entity, Has, getComponentValueStrict } from "@latticexyz/recs";
-import { singletonEntity } from "@latticexyz/store-sync/recs";
-import { hexToArray } from "@latticexyz/utils";
 
-export const GameBoard = () => {
-  //useKeyboardMovement();
-
+const GameBoard = () => {
   const {
     components: { Player },
-    network: { playerEntity },
+    network: { playerEntity, useStore, tables },
     systemCalls: { spawn },
   } = useMUD();
 
-  const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
-  console.log(playerEntity);
+  const records = useStore(state => Object.values(state.getRecords(tables.Player)));
+  useEffect(() => {
+    if (playerEntity) {
+      // const players = useStore.getState();
+      console.log("Players", records);
 
-  /*const players = useEntityQuery([Has(Player), Has(Position)]).map(entity => {
-    const position = getComponentValueStrict(Position, entity);
-    return {
-      entity,
-      x: position.x,
-      y: position.y,
-      emoji: entity === playerEntity ? "🤠" : "🥸",
-    };
-  });
-  console.log(players);*/
+      //return players;
+    }
+  }, []);
 
   return (
-    <>
-      <button onClick={() => canSpawn && spawn()}>Spawn</button>
-    </>
+    <div className="card-body w-full flex flex-row  items-center top-0 justify-center">
+      <div className="flex flex-col">
+        <PlayerInput />
+        <button className="btn w-1/3" onClick={spawn}>
+          Spawn
+        </button>
+      </div>
+      <PlayerList players={records} />
+    </div>
   );
 };
 
