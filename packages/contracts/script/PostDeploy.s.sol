@@ -6,7 +6,7 @@ import { StoreSwitch } from "@latticexyz/store/src/StoreSwitch.sol";
 import { IWorld } from "../src/codegen/world/IWorld.sol";
 import { SpawnPlayerSystem } from "../src/systems/SpawnPlayerSystem.sol";
 
-import { Player } from "../src/codegen/index.sol";
+import { Player, Lore } from "../src/codegen/index.sol";
 
 contract PostDeploy is Script {
   function run(address worldAddress) external {
@@ -31,9 +31,9 @@ contract PostDeploy is Script {
     uint32 health = 100;
     string memory name = "PlayerOne";
     Player.set(playerId, x, y, health, name);
+    Lore.set(playerId, "chaotic good", "This is the first player.", "save the world");
     //console.log("Player spawned:", playerId, name, x, y, health);
 
     vm.stopBroadcast();
   }
 }
-

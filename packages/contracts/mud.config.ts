@@ -8,7 +8,6 @@ export default defineWorld({
     EntityType,
   },
   tables: {
-    // Table to define player entities
     Player: {
       schema: {
         id: "bytes32",
@@ -16,6 +15,15 @@ export default defineWorld({
         y: "int32",
         health: "uint32",
         name: "string",
+      },
+      key: ["id"],
+    },
+    Lore: {
+      schema: {
+        id: "bytes32",
+        alignment: "string",
+        backstory: "string",
+        currentQuest: "string",
       },
       key: ["id"],
     },

@@ -1,4 +1,5 @@
 import React from "react";
+import LoreEditor from "./LoreEditor";
 import { usePlayerStore } from "~~/services/store/playerStore";
 
 const PlayerInput = () => {
@@ -13,6 +14,8 @@ const PlayerInput = () => {
         onChange={e => setPlayerName(e.target.value)}
         placeholder="Enter player name"
       />
+
+      <LoreEditor />
     </div>
   );
 };
