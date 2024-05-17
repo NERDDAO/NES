@@ -1,13 +1,11 @@
-import React, { useEffect } from "react";
-import LoreEditor from "../LoreEditor";
+import React from "react";
 import PlayerInput from "../PlayerInput";
 import PlayerList from "../PlayerList";
 import { useMUD } from "./MUDContext";
 
 const GameBoard = () => {
   const {
-    network: { playerEntity, useStore, tables },
-    systemCalls: { spawn },
+    network: { useStore, tables },
   } = useMUD();
 
   const records = useStore(state => Object.values(state.getRecords(tables.Player)));
@@ -15,7 +13,6 @@ const GameBoard = () => {
   return (
     <div className="container flex flex-row mx-auto w-full h-full">
       <PlayerInput />
-      <button onClick={spawn}>Spawn</button>
       <PlayerList players={records} />
     </div>
   );

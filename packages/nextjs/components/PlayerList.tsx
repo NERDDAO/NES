@@ -1,10 +1,11 @@
 import React from "react";
 import Image from "next/image";
+import InventoryDisplay from "./InventoryDisplay";
 import LoreDisplay from "./LoreDisplay";
 import { pixelArt } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
 
-const PlayerList = (props: { players: any }) => {
+const PlayerList = props => {
   const { players } = props;
   return (
     <div className="p-5 bg-gray-100 rounded-lg shadow-md overflow-scroll max-h-svh flex justify-items-end">
@@ -26,6 +27,7 @@ const PlayerList = (props: { players: any }) => {
                   <strong>Health:</strong> {player.value.health}
                 </p>
                 <LoreDisplay entityId={player.key.id} />
+                <InventoryDisplay entityId={player.key.id} />
               </div>
               <div className="ml-4">
                 <Image

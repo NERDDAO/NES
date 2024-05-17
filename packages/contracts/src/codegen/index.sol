@@ -5,3 +5,5 @@ pragma solidity >=0.8.24;
 
 import { Player, PlayerData } from "./tables/Player.sol";
 import { Lore, LoreData } from "./tables/Lore.sol";
+import { Inventory } from "./tables/Inventory.sol";
+import { Item, ItemData } from "./tables/Item.sol";
