@@ -8,6 +8,45 @@ export default defineWorld({
     EntityType,
   },
   tables: {
+    TradeRequest: {
+      schema: {
+        requestId: "bytes32",
+        requestedItem: "uint256",
+        quantityRequested: "uint32",
+        status: "uint8",
+        requester: "address",
+      },
+      key: ["requestId"],
+    },
+    TradeOffer: {
+      schema: {
+        offerId: "bytes32",
+        requestId: "bytes32",
+        offeredItem: "uint256",
+        quantityOffered: "uint32",
+        offerer: "address",
+      },
+      key: ["offerId"],
+    },
+    Quest: {
+      schema: {
+        questId: "bytes32",
+        reward: "uint8",
+        isActive: "bool",
+        questName: "string",
+        description: "string",
+      },
+      key: ["questId"],
+    },
+    QuestStatus: {
+      schema: {
+        questId: "bytes32",
+        participant: "address",
+        status: "uint8",
+      },
+      key: ["questId", "participant"],
+    },
+
     Player: {
       schema: {
         id: "bytes32",
@@ -36,7 +75,7 @@ export default defineWorld({
     },
     Item: {
       schema: {
-        itemId: "bytes8", // Changed to bytes32 for a more consistent key type
+        itemId: "uint8", // Changed to bytes32 for a more consistent key type
         itemCount: "uint256",
         itemName: "string",
       },

@@ -21,7 +21,7 @@ contract InventorySystem is System {
     Inventory.pushItemIds(id, 1);
   }
 
-  function removeItemFromInventory(bytes8 itemId) public {
+  function removeItemFromInventory(uint8 itemId) public {
     // Get the inventory item IDs of the owner
 
     bytes32 id = addressToEntityKey(msg.sender);

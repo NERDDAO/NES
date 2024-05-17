@@ -9,12 +9,33 @@ export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
 export function createSystemCalls(
   { playerEntity, worldContract, waitForTransaction }: SetupNetworkResult,
-  { Player, Lore, Inventory, Item }: ClientComponents,
+  { Player, Lore, Inventory, Item, Quest, Trading }: ClientComponents,
 ) {
+  const handleTransaction = async (
+    transactionFn: () => Promise<any>,
+    loadingMessage: string,
+    successMessage: string,
+    errorMessage: string,
+  ) => {
+    toast.loading(loadingMessage);
+
+    try {
+      const tx = await transactionFn();
+      await waitForTransaction(tx);
+      toast.success(successMessage);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      toast.error(errorMessage);
+    } finally {
+      toast.dismiss();
+    }
+  };
+
   const spawn = async () => {
     if (!playerEntity) {
       throw new Error("no player");
     }
+
     const canSpawn = getComponentValue(Player, playerEntity)?.value !== true;
     const playerName = usePlayerStore.getState().playerName;
     const lore = usePlayerStore.getState().lore;
@@ -29,59 +50,80 @@ export function createSystemCalls(
       value: { value: true },
     });
 
-    const args = {
-      x: 0,
-      y: 0,
-      health: 100,
-      name: playerName,
-    };
-
     toast.loading("Spawning player...");
+
     try {
+      const args = {
+        x: 0,
+        y: 0,
+        health: 100,
+        name: playerName,
+      };
       const tx = await worldContract.write.spawnPlayer([args, lore]);
       await waitForTransaction(tx);
+      toast.success(`Player spawned! ${playerName}`);
     } catch (error) {
       console.error("Spawn transaction failed:", error);
+      toast.error("Failed to spawn player.");
     } finally {
       setTimeout(() => {
         Player.removeOverride(playerId);
         toast.dismiss();
-        toast.success(`Player spawned! ${playerName}`);
       }, 1000);
     }
   };
 
   const addItemToInventory = async () => {
-    toast.loading("Adding item...");
-    try {
-      const tx = await worldContract.write.addItemToInventory([1]);
-      await waitForTransaction(tx);
-      toast.success("Item added!");
-    } catch (error) {
-      console.error("Add item transaction failed:", error);
-      toast.error("Failed to add item.");
-    } finally {
-      toast.dismiss();
-    }
+    await handleTransaction(
+      () => worldContract.write.addItemToInventory([1]),
+      "Adding item...",
+      "Item added!",
+      "Failed to add item.",
+    );
   };
 
   const removeItemFromInventory = async (ownerId: string, itemId: string) => {
-    toast.loading("Removing item...");
-    try {
-      const tx = await worldContract.write.removeItemFromInventory([ownerId, itemId]);
-      await waitForTransaction(tx);
-      toast.success("Item removed!");
-    } catch (error) {
-      console.error("Remove item transaction failed:", error);
-      toast.error("Failed to remove item.");
-    } finally {
-      toast.dismiss();
-    }
+    await handleTransaction(
+      () => worldContract.write.removeItemFromInventory([ownerId, itemId]),
+      "Removing item...",
+      "Item removed!",
+      "Failed to remove item.",
+    );
+  };
+
+  const createQuest = async (name: string, description: string, reward: number) => {
+    await handleTransaction(
+      () => worldContract.write.createQuest([name, description, reward]),
+      "Creating quest...",
+      "Quest created!",
+      "Failed to create quest.",
+    );
+  };
+
+  const completeQuest = async (questId: string) => {
+    await handleTransaction(
+      () => worldContract.write.completeQuest([questId]),
+      "Completing quest...",
+      "Quest completed!",
+      "Failed to complete quest.",
+    );
+  };
+
+  const tradeItem = async (from: string, to: string, itemId: string) => {
+    await handleTransaction(
+      () => worldContract.write.tradeItem([from, to, itemId]),
+      "Trading item...",
+      "Item traded!",
+      "Failed to trade item.",
+    );
   };
 
   return {
     spawn,
     addItemToInventory,
     removeItemFromInventory,
+    createQuest,
+    completeQuest,
+    tradeItem,
   };
 }
