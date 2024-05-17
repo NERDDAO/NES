@@ -6,7 +6,7 @@ import { Inventory, Item, ItemData } from "../codegen/index.sol";
 import { addressToEntityKey } from "../addressToEntityKey.sol";
 
 contract InventorySystem is System {
-  function addItemToInventory(uint8 itemId) public {
+  function addItemToInventory() public {
     // Ensure the item does not already exist
     bytes32 id = addressToEntityKey(msg.sender);
     //ItemData memory existingItem = Item.get(itemId);
