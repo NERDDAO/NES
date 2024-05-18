@@ -45,6 +45,6 @@ contract DynamicQuestSystem is System {
 
   function _rewardItemToPlayer(bytes32 playerId, uint8 rewardItemId) internal {
     Inventory.pushItemIds(playerId, rewardItemId);
-    Item.set(rewardItemId, ItemData({ itemCount: 1, itemName: "Reward Item" })); // Presume reward item data available
+    Item.set(rewardItemId, ItemData({ itemCount: 1, itemName: "Reward Item", description: "you earned it" })); // Presume reward item data available
   }
 }

@@ -1,7 +1,7 @@
 import { defineWorld } from "@latticexyz/world";
 
 // Define enums for better type safety and readability
-const EntityType = ["Player"];
+const EntityType = ["Player", "Room", "Item", "Character"];
 
 export default defineWorld({
   enums: {
@@ -46,7 +46,6 @@ export default defineWorld({
       },
       key: ["questId", "participant"],
     },
-
     Player: {
       schema: {
         id: "bytes32",
@@ -69,17 +68,42 @@ export default defineWorld({
     Inventory: {
       schema: {
         ownerId: "bytes32",
-        itemIds: "uint8[]", // Changed to bytes32[] for dynamic length
+        itemIds: "uint8[]",
       },
       key: ["ownerId"],
     },
     Item: {
       schema: {
-        itemId: "uint8", // Changed to bytes32 for a more consistent key type
+        itemId: "uint8",
         itemCount: "uint256",
         itemName: "string",
+        description: "string",
       },
       key: ["itemId"],
+    },
+    Room: {
+      schema: {
+        roomId: "bytes32",
+        name: "string",
+        description: "string",
+      },
+      key: ["roomId"],
+    },
+    Exit: {
+      schema: {
+        roomId: "bytes32",
+        targetRoomId: "bytes32",
+        direction: "string",
+      },
+      key: ["roomId"],
+    },
+    Character: {
+      schema: {
+        characterId: "bytes32",
+        name: "string",
+        description: "string",
+      },
+      key: ["characterId"],
     },
   },
   deploy: {

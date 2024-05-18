@@ -15,6 +15,6 @@ contract SpawnPlayerSystem is System {
     Player.set(id, PlayerData({ x: data.x, y: data.y, health: data.health, name: data.name }));
     Lore.set(id, lore.alignment, lore.backstory, lore.currentQuest);
     Inventory.set(id, new uint8[](1));
-    Item.set(0, ItemData({ itemCount: 1, itemName: "Axe" }));
+    Item.set(0, ItemData({ itemCount: 1, itemName: "Axe", description: "a sturdy axe" }));
   }
 }

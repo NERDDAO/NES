@@ -21,10 +21,24 @@ export const TradingComponent: React.FC<Props> = ({ systemCalls }) => {
   return (
     <div>
       <h2>Trade Item</h2>
-      <input type="text" placeholder="From user ID" value={from} onChange={e => setFrom(e.target.value)} />
-      <input type="text" placeholder="To user ID" value={to} onChange={e => setTo(e.target.value)} />
-      <input type="text" placeholder="Item ID" value={itemId} onChange={e => setItemId(e.target.value)} />
-      <button onClick={handleTradeItem}>Trade Item</button>
+      <input
+        className="input"
+        type="text"
+        placeholder="From user ID"
+        value={from}
+        onChange={e => setFrom(e.target.value)}
+      />
+      <input className="input" type="text" placeholder="To user ID" value={to} onChange={e => setTo(e.target.value)} />
+      <input
+        className="input"
+        type="text"
+        placeholder="Item ID"
+        value={itemId}
+        onChange={e => setItemId(e.target.value)}
+      />
+      <button className="btn" onClick={handleTradeItem}>
+        Trade Item
+      </button>
     </div>
   );
 };

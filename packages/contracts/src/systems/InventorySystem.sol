@@ -12,7 +12,7 @@ contract InventorySystem is System {
     //ItemData memory existingItem = Item.get(itemId);
     // require(existingItem.itemCount > 0, "Item already exists");
 
-    Item.set(0, ItemData({ itemCount: 1, itemName: "Axe" }));
+    Item.set(0, ItemData({ itemCount: 1, itemName: "Axe", description: "sample axe" }));
     // Create the itema
 
     // Get the inventory item IDs of the owner

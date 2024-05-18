@@ -11,3 +11,6 @@ import { Player, PlayerData } from "./tables/Player.sol";
 import { Lore, LoreData } from "./tables/Lore.sol";
 import { Inventory } from "./tables/Inventory.sol";
 import { Item, ItemData } from "./tables/Item.sol";
+import { Room, RoomData } from "./tables/Room.sol";
+import { Exit, ExitData } from "./tables/Exit.sol";
+import { Character, CharacterData } from "./tables/Character.sol";

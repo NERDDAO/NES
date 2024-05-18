@@ -40,6 +40,6 @@ contract TradingSystem is System {
   function _addItemToInventory(bytes32 ownerId, uint8 itemId) internal {
     Inventory.pushItemIds(ownerId, itemId);
 
-    Item.set(0, ItemData({ itemCount: 1, itemName: "Axe" }));
+    Item.set(0, ItemData({ itemCount: 1, itemName: "Axe", description: "a sample axe" }));
   }
 }

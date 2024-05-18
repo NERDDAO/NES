@@ -9,7 +9,7 @@ export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
 export function createSystemCalls(
   { playerEntity, worldContract, waitForTransaction }: SetupNetworkResult,
-  { Player, Lore, Inventory, Item, Quest, Trading }: ClientComponents,
+  { Player, Lore, Inventory, Item, Quest, Trading, Room, Exit, Character }: ClientComponents,
 ) {
   const handleTransaction = async (
     transactionFn: () => Promise<any>,
@@ -118,6 +118,42 @@ export function createSystemCalls(
     );
   };
 
+  const createRoom = async (roomId: string, name: string, description: string) => {
+    await handleTransaction(
+      () => worldContract.write.createRoom([roomId, name, description]),
+      "Creating room...",
+      "Room created!",
+      "Failed to create room.",
+    );
+  };
+
+  const createExit = async (roomId: string, direction: string, targetRoomId: string) => {
+    await handleTransaction(
+      () => worldContract.write.createExit([roomId, direction, targetRoomId]),
+      "Creating exit...",
+      "Exit created!",
+      "Failed to create exit.",
+    );
+  };
+
+  const createItem = async (itemId: string, name: string, description: string, itemCount: number) => {
+    await handleTransaction(
+      () => worldContract.write.createItem([itemId, name, description, itemCount]),
+      "Creating item...",
+      "Item created!",
+      "Failed to create item.",
+    );
+  };
+
+  const createCharacter = async (characterId: string, name: string, description: string) => {
+    await handleTransaction(
+      () => worldContract.write.createCharacter([characterId, name, description]),
+      "Creating character...",
+      "Character created!",
+      "Failed to create character.",
+    );
+  };
+
   return {
     spawn,
     addItemToInventory,
@@ -125,5 +161,9 @@ export function createSystemCalls(
     createQuest,
     completeQuest,
     tradeItem,
+    createRoom,
+    createExit,
+    createItem,
+    createCharacter,
   };
 }
