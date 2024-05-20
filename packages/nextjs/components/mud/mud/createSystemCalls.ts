@@ -31,6 +31,54 @@ export function createSystemCalls(
     }
   };
 
+  const move = async (direction: Direction) => {
+    if (!playerEntity) {
+      throw new Error("no player");
+    }
+
+    const position = getComponentValue(Position, playerEntity);
+    if (!position) {
+      console.warn("cannot move without a player position, not yet spawned?");
+      return;
+    }
+
+    const inEncounter = !!getComponentValue(Encounter, playerEntity);
+    if (inEncounter) {
+      console.warn("cannot move while in encounter");
+      return;
+    }
+
+    let { x: inputX, y: inputY } = position;
+    if (direction === Direction.North) {
+      inputY -= 1;
+    } else if (direction === Direction.East) {
+      inputX += 1;
+    } else if (direction === Direction.South) {
+      inputY += 1;
+    } else if (direction === Direction.West) {
+      inputX -= 1;
+    }
+
+    const [x, y] = wrapPosition(inputX, inputY);
+    if (isObstructed(x, y)) {
+      console.warn("cannot move to obstructed space");
+      return;
+    }
+
+    const positionId = uuid();
+    Position.addOverride(positionId, {
+      entity: playerEntity,
+      value: { x, y },
+    });
+
+    try {
+      const tx = await worldContract.write.move([direction]);
+      await waitForTransaction(tx);
+    } finally {
+      Position.removeOverride(positionId);
+    }
+  };
+
   const spawn = async () => {
     if (!playerEntity) {
       throw new Error("no player");
