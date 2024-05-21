@@ -6,6 +6,8 @@ const EntityType = ["Player", "Room", "Item", "Character"];
 export default defineWorld({
   enums: {
     EntityType,
+
+    Direction: ["North", "East", "South", "West"],
   },
   tables: {
     TradeRequest: {
@@ -49,13 +51,24 @@ export default defineWorld({
     Player: {
       schema: {
         id: "bytes32",
-        x: "int32",
-        y: "int32",
-        health: "uint32",
         name: "string",
       },
       key: ["id"],
     },
+
+    Position: {
+      schema: {
+        id: "bytes32",
+        x: "int32",
+        y: "int32",
+      },
+      key: ["id"],
+      codegen: {
+        dataStruct: false,
+      },
+    },
+    Movable: "bool",
+    Player: "bool",
     Lore: {
       schema: {
         id: "bytes32",
