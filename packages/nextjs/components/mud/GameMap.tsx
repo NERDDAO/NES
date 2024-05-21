@@ -1,9 +1,9 @@
-import { ReactNode, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useMUD } from "./MUDContext";
 import { Entity } from "@latticexyz/recs";
 import { twMerge } from "tailwind-merge";
 
-type Props = {
+export type GameMapProps = {
   width: number;
   height: number;
   onTileClick?: (x: number, y: number) => void;
@@ -18,19 +18,26 @@ type Props = {
     emoji: string;
     entity: Entity;
   }[];
-  encounter?: ReactNode;
+  encounter?: React.ReactNode;
 };
 
-export const GameMap = ({ width, height, onTileClick, terrain, players, encounter }: Props) => {
+const GameMap: React.FC<GameMapProps> = ({
+  width,
+  height,
+  onTileClick,
+  terrain,
+  players,
+  encounter,
+}) => {
   const {
     network: { playerEntity },
   } = useMUD();
 
-  const rows = new Array(width).fill(0).map((_, i) => i);
-  const columns = new Array(height).fill(0).map((_, i) => i);
+  const rows = new Array(height).fill(0).map((_, i) => i);
+  const columns = new Array(width).fill(0).map((_, i) => i);
 
   const [showEncounter, setShowEncounter] = useState(false);
-  // Reset show encounter when we leave encounter
+
   useEffect(() => {
     if (!encounter) {
       setShowEncounter(false);
@@ -39,19 +46,23 @@ export const GameMap = ({ width, height, onTileClick, terrain, players, encounte
 
   return (
     <div className="inline-grid p-2 bg-lime-500 relative overflow-hidden">
-      {rows.map(y =>
-        columns.map(x => {
-          const terrainEmoji = terrain?.find(t => t.x === x && t.y === y)?.emoji;
+      {rows.map((y) =>
+        columns.map((x) => {
+          const terrainEmoji = terrain?.find(
+            (t) => t.x === x && t.y === y
+          )?.emoji;
 
-          const playersHere = players?.filter(p => p.x === x && p.y === y);
-          const mainPlayerHere = playersHere?.find(p => p.entity === playerEntity);
+          const playersHere = players?.filter((p) => p.x === x && p.y === y);
+          const mainPlayerHere = playersHere?.find(
+            (p) => p.entity === playerEntity
+          );
 
           return (
             <div
               key={`${x},${y}`}
               className={twMerge(
                 "w-8 h-8 flex items-center justify-center",
-                onTileClick ? "cursor-pointer hover:ring" : null,
+                onTileClick ? "cursor-pointer hover:ring" : null
               )}
               style={{
                 gridColumn: x + 1,
@@ -79,14 +90,14 @@ export const GameMap = ({ width, height, onTileClick, terrain, players, encounte
                   </div>
                 ) : null}
                 <div className="relative">
-                  {playersHere?.map(p => (
+                  {playersHere?.map((p) => (
                     <span key={p.entity}>{p.emoji}</span>
                   ))}
                 </div>
               </div>
             </div>
           );
-        }),
+        })
       )}
 
       {encounter && showEncounter ? (
@@ -105,3 +116,5 @@ export const GameMap = ({ width, height, onTileClick, terrain, players, encounte
     </div>
   );
 };
+
+export default GameMap;

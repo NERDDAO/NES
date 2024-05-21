@@ -1,27 +1,34 @@
-import { Direction } from "../direction";
-import { MonsterCatchResult } from "../monsterCatchResult";
 import { ClientComponents } from "./createClientComponents";
 import { SetupNetworkResult } from "./setupNetwork";
-import { Has, HasValue, getComponentValue, runQuery } from "@latticexyz/recs";
-import { singletonEntity } from "@latticexyz/store-sync/recs";
+import { getComponentValue } from "@latticexyz/recs";
 import { uuid } from "@latticexyz/utils";
+import { toast } from "react-hot-toast";
+import { usePlayerStore } from "~~/services/store/playerStore";
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
 export function createSystemCalls(
   { playerEntity, worldContract, waitForTransaction }: SetupNetworkResult,
-  { Encounter, MapConfig, MonsterCatchAttempt, Obstruction, Player, Position }: ClientComponents,
+  { Player, Lore, Inventory, Item, Quest, Trading, Room, Exit, Character }: ClientComponents,
 ) {
-  const wrapPosition = (x: number, y: number) => {
-    const mapConfig = getComponentValue(MapConfig, singletonEntity);
-    if (!mapConfig) {
-      throw new Error("mapConfig no yet loaded or initialized");
-    }
-    return [(x + mapConfig.width) % mapConfig.width, (y + mapConfig.height) % mapConfig.height];
-  };
+  const handleTransaction = async (
+    transactionFn: () => Promise<any>,
+    loadingMessage: string,
+    successMessage: string,
+    errorMessage: string,
+  ) => {
+    toast.loading(loadingMessage);
 
-  const isObstructed = (x: number, y: number) => {
-    return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
+    try {
+      const tx = await transactionFn();
+      await waitForTransaction(tx);
+      toast.success(successMessage);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      toast.error(errorMessage);
+    } finally {
+      toast.dismiss();
+    }
   };
 
   const move = async (direction: Direction) => {
@@ -67,93 +74,144 @@ export function createSystemCalls(
     try {
       const tx = await worldContract.write.move([direction]);
       await waitForTransaction(tx);
-    } catch (error) {
-      // Handle the error if the transaction fails
-      console.error("Move transaction failed:", error);
     } finally {
-      // Delay the override removal by a short duration (e.g., 1000ms)
-      setTimeout(() => {
-        Position.removeOverride(positionId);
-      }, 1000);
+      Position.removeOverride(positionId);
     }
   };
 
-  const spawn = async (inputX: number, inputY: number) => {
+  const spawn = async () => {
     if (!playerEntity) {
       throw new Error("no player");
     }
 
     const canSpawn = getComponentValue(Player, playerEntity)?.value !== true;
+    const playerName = usePlayerStore.getState().playerName;
+    const lore = usePlayerStore.getState().lore;
+
     if (!canSpawn) {
       throw new Error("already spawned");
     }
 
-    const [x, y] = wrapPosition(inputX, inputY);
-    if (isObstructed(x, y)) {
-      console.warn("cannot spawn on obstructed space");
-      return;
-    }
-
-    const positionId = uuid();
-    Position.addOverride(positionId, {
-      entity: playerEntity,
-      value: { x, y },
-    });
     const playerId = uuid();
     Player.addOverride(playerId, {
       entity: playerEntity,
       value: { value: true },
     });
 
+    toast.loading("Spawning player...");
+
     try {
-      const tx = await worldContract.write.spawn([x, y]);
+      const args = {
+        x: 0,
+        y: 0,
+        health: 100,
+        name: playerName,
+      };
+      const tx = await worldContract.write.spawnPlayer([args, lore]);
       await waitForTransaction(tx);
+      toast.success(`Player spawned! ${playerName}`);
     } catch (error) {
-      // Handle the error if the transaction fails
       console.error("Spawn transaction failed:", error);
+      toast.error("Failed to spawn player.");
     } finally {
       setTimeout(() => {
-        Position.removeOverride(positionId);
         Player.removeOverride(playerId);
+        toast.dismiss();
       }, 1000);
     }
   };
 
-  const throwBall = async () => {
-    const player = playerEntity;
-    if (!player) {
-      throw new Error("no player");
-    }
-
-    const encounter = getComponentValue(Encounter, player);
-    if (!encounter) {
-      throw new Error("no encounter");
-    }
-    try {
-      const tx = await worldContract.write.throwBall();
-      await waitForTransaction(tx);
-    } catch (error) {
-      // Handle the error if the transaction fails
-      console.error("Spawn transaction failed:", error);
-    }
-
-    const catchAttempt = getComponentValue(MonsterCatchAttempt, player);
-    if (!catchAttempt) {
-      throw new Error("no catch attempt found");
-    }
-
-    return catchAttempt.result as MonsterCatchResult;
+  const addItemToInventory = async () => {
+    await handleTransaction(
+      () => worldContract.write.addItemToInventory([1]),
+      "Adding item...",
+      "Item added!",
+      "Failed to add item.",
+    );
   };
 
-  const fleeEncounter = async () => {
-    const tx = await worldContract.write.flee();
-    await waitForTransaction(tx);
+  const removeItemFromInventory = async (ownerId: string, itemId: string) => {
+    await handleTransaction(
+      () => worldContract.write.removeItemFromInventory([ownerId, itemId]),
+      "Removing item...",
+      "Item removed!",
+      "Failed to remove item.",
+    );
+  };
+
+  const createQuest = async (name: string, description: string, reward: number) => {
+    await handleTransaction(
+      () => worldContract.write.createQuest([name, description, reward]),
+      "Creating quest...",
+      "Quest created!",
+      "Failed to create quest.",
+    );
+  };
+
+  const completeQuest = async (questId: string) => {
+    await handleTransaction(
+      () => worldContract.write.completeQuest([questId]),
+      "Completing quest...",
+      "Quest completed!",
+      "Failed to complete quest.",
+    );
+  };
+
+  const tradeItem = async (from: string, to: string, itemId: string) => {
+    await handleTransaction(
+      () => worldContract.write.tradeItem([from, to, itemId]),
+      "Trading item...",
+      "Item traded!",
+      "Failed to trade item.",
+    );
+  };
+
+  const createRoom = async (roomId: string, name: string, description: string) => {
+    await handleTransaction(
+      () => worldContract.write.createRoom([roomId, name, description]),
+      "Creating room...",
+      "Room created!",
+      "Failed to create room.",
+    );
+  };
+
+  const createExit = async (roomId: string, direction: string, targetRoomId: string) => {
+    await handleTransaction(
+      () => worldContract.write.createExit([roomId, direction, targetRoomId]),
+      "Creating exit...",
+      "Exit created!",
+      "Failed to create exit.",
+    );
+  };
+
+  const createItem = async (itemId: string, name: string, description: string, itemCount: number) => {
+    await handleTransaction(
+      () => worldContract.write.createItem([itemId, name, description, itemCount]),
+      "Creating item...",
+      "Item created!",
+      "Failed to create item.",
+    );
+  };
+
+  const createCharacter = async (characterId: string, name: string, description: string) => {
+    await handleTransaction(
+      () => worldContract.write.createCharacter([characterId, name, description]),
+      "Creating character...",
+      "Character created!",
+      "Failed to create character.",
+    );
   };
 
   return {
-    move,
     spawn,
-    throwBall,
-    fleeEncounter,
+    addItemToInventory,
+    removeItemFromInventory,
+    createQuest,
+    completeQuest,
+    tradeItem,
+    createRoom,
+    createExit,
+    createItem,
+    createCharacter,
   };
 }

@@ -1,67 +1,72 @@
-import { EncounterScreen } from "./EncounterScreen";
-import { GameMap } from "./GameMap";
+import React, { useEffect, useState } from "react";
+import { CharacterComponent } from "../CharacterComponent";
+import { ItemComponent } from "../ItemComponent";
+import PlayerInput from "../PlayerInput";
+import PlayerList from "../PlayerList";
+import { QuestComponent } from "../QuestComponent";
+import { RoomComponent } from "../RoomComponent";
+import { TradingComponent } from "../TradingComponent";
 import { useMUD } from "./MUDContext";
-import { MonsterType, monsterTypes } from "./monsterTypes";
-import { TerrainType, terrainTypes } from "./terrainTypes";
-import { useKeyboardMovement } from "./useKeyboardMovement";
-import { useComponentValue, useEntityQuery } from "@latticexyz/react";
-import { Entity, Has, getComponentValueStrict } from "@latticexyz/recs";
-import { singletonEntity } from "@latticexyz/store-sync/recs";
-import { hexToArray } from "@latticexyz/utils";
+import GameMap from "../mud/GameMap"; // Ensure the correct import path
+import { Entity } from "@latticexyz/recs";
 
-export const GameBoard = () => {
-  useKeyboardMovement();
+type Player = {
+  x: number;
+  y: number;
+  emoji: string;
+  entity: Entity;
+};
 
+const GameBoard = () => {
   const {
-    components: { Encounter, MapConfig, Monster, Player, Position },
-    network: { playerEntity },
-    systemCalls: { spawn },
+    network: { useStore, tables, playerEntity },
   } = useMUD();
 
-  const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
+  const systemCalls = useMUD().systemCalls;
 
-  const players = useEntityQuery([Has(Player), Has(Position)]).map(entity => {
-    const position = getComponentValueStrict(Position, entity);
-    return {
-      entity,
-      x: position.x,
-      y: position.y,
-      emoji: entity === playerEntity ? "🤠" : "🥸",
-    };
-  });
+  const records = useStore(state => Object.values(state.getRecords(tables.Player as any)));
 
-  const mapConfig = useComponentValue(MapConfig, singletonEntity);
-  if (mapConfig == null) {
-    throw new Error("map config not set or not ready, only use this hook after loading state === LIVE");
-  }
+  const [terrain, setTerrain] = useState<{ x: number; y: number; emoji: string; }[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  useEffect(() => {
+    // Fetch or set terrain and players data here
+    setTerrain([
+      { x: 2, y: 2, emoji: "🌳" },
+      { x: 1, y: 7, emoji: "🌲" },
+      // Add more terrain data as needed
+    ]);
 
-  const { width, height, terrain: terrainData } = mapConfig;
-  const terrain = Array.from(hexToArray(terrainData)).map((value, index) => {
-    const { emoji } = value in TerrainType ? terrainTypes[value as TerrainType] : { emoji: "" };
-    return {
-      x: index % width,
-      y: Math.floor(index / width),
-      emoji,
-    };
-  });
-
-  const encounter = useComponentValue(Encounter, playerEntity);
-  const monsterType = useComponentValue(Monster, encounter ? (encounter.monster as Entity) : undefined)?.value;
-  const monster = monsterType != null && monsterType in MonsterType ? monsterTypes[monsterType as MonsterType] : null;
+    setPlayers([
+      { x: 0, y: 0, emoji: "😀", entity: playerEntity },
+      // Add more player data as needed
+    ]);
+  }, [playerEntity]);
 
   return (
-    <GameMap
-      width={width}
-      height={height}
-      terrain={terrain}
-      onTileClick={canSpawn ? spawn : undefined}
-      players={players}
-      encounter={
-        encounter ? (
-          <EncounterScreen monsterName={monster?.name ?? "MissingNo"} monsterEmoji={monster?.emoji ?? "💱"} />
-        ) : undefined
-      }
-    />
+    <div className="flex justify-center items-center w-full h-full">
+      <div className="grid grid-cols-12 gap-4 w-full h-full max-w-7xl p-4">
+        <div className="col-span-3 overflow-auto p-2">
+          <PlayerInput />
+          <PlayerList players={records} />
+        </div>
+        <div className="col-span-6 overflow-auto p-2">
+          <GameMap
+            width={10}
+            height={10}
+            terrain={terrain}
+            players={players}
+            onTileClick={(x, y) => console.log(`Tile clicked: ${x}, ${y}`)}
+          />
+        </div>
+        <div className="col-span-3 overflow-auto p-2">
+          <QuestComponent systemCalls={systemCalls} />
+          <TradingComponent systemCalls={systemCalls} />
+          <RoomComponent systemCalls={systemCalls} />
+          <ItemComponent systemCalls={systemCalls} />
+          <CharacterComponent systemCalls={systemCalls} />
+        </div>
+      </div>
+    </div>
   );
 };
 

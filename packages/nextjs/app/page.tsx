@@ -24,7 +24,7 @@ export const Home = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center">
+    <div className="w-screen h-screen flex top-0 relative container">
       {loadingState.step !== SyncStep.LIVE ? (
         <div>
           {loadingState.message} ({loadingState.percentage.toFixed(2)}%)
